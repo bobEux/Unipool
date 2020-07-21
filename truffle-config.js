@@ -1,6 +1,19 @@
 require('dotenv').config();
+const request = require('sync-request');
+const web3 = require('web3');
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
+const ethgasstation = "https://ethgasstation.info/api/ethgasAPI.json";
+
+let mainnetGasPrice = 10;
+try {
+  const res = request('GET', ethgasstation);
+  // Unit is 10*gwei
+  mainnetGasPrice = (JSON.parse(res.getBody('utf8')).fast / 10).toString();
+  console.log("Gas price: " + mainnetGasPrice);
+} catch {
+  console.log("Unable to fetch gas prices.");
+}
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
@@ -25,6 +38,7 @@ module.exports = {
       network_id: 1,
       confirmations: 2,
       timeoutBlocks: 200,
+      gasPrice: web3.utils.toWei(mainnetGasPrice, 'gwei'),
     },
   },
   compilers: {
