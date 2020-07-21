@@ -1,3 +1,7 @@
+require('dotenv').config();
+
+const HDWalletProvider = require('@truffle/hdwallet-provider');
+
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
   // to customize your Truffle configuration!
@@ -15,7 +19,13 @@ module.exports = {
       network_id: '*',
       gas: 8000000,
       gasPrice: 1000000000, // web3.eth.gasPrice
-    }
+    },
+    mainnet: {
+      provider: () => new HDWalletProvider(process.env.MNEMONIC, `https://mainnet.infura.io/v3/` + process.env.INFURA_API_KEY),
+      network_id: 1,
+      confirmations: 2,
+      timeoutBlocks: 200,
+    },
   },
   compilers: {
     solc: {
