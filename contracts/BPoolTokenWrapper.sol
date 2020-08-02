@@ -6,14 +6,19 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "./IRewardDistributionRecipient.sol";
 
-contract LPTokenWrapper {
+
+contract BPoolTokenWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public token = IERC20(0xA9859874e1743A32409f75bB11549892138BBA1E);
+    IERC20 public uni;
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
+
+    constructor(address pool) public {
+        uni = IERC20(pool);
+    }
 
     function totalSupply() public view returns (uint256) {
         return _totalSupply;
@@ -26,18 +31,19 @@ contract LPTokenWrapper {
     function stake(uint256 amount) public {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        token.safeTransferFrom(msg.sender, address(this), amount);
+        uni.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        token.safeTransfer(msg.sender, amount);
+        uni.safeTransfer(msg.sender, amount);
     }
 }
 
-contract iETHRewards is LPTokenWrapper, IRewardDistributionRecipient {
-    IERC20 public snx = IERC20(0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F);
+
+contract Balpool is BPoolTokenWrapper, IRewardDistributionRecipient {
+    IERC20 public plr = IERC20(0xe3818504c1B32bF1557b16C238B2E01Fd3149C17);
     uint256 public constant DURATION = 7 days;
 
     uint256 public periodFinish = 0;
@@ -52,6 +58,10 @@ contract iETHRewards is LPTokenWrapper, IRewardDistributionRecipient {
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
+    constructor(address rewardToken, address pool) BPoolTokenWrapper(pool) public {
+        plr = IERC20(rewardToken);
+    }
+
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
@@ -60,6 +70,20 @@ contract iETHRewards is LPTokenWrapper, IRewardDistributionRecipient {
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
         }
         _;
+    }
+
+    modifier onlyEligible() {
+        require(isEligible(msg.sender), "Must be called by a Pillar Wallet.");
+        _;
+    }
+
+    function isEligible(address eligible) public view returns (bool) {
+        bytes32 SMARTWALLET_ETH_ACCOUNT_BYTE_CODE_HASH = 0x71d668827d20204f3ebf0ee20d26752e9f0c62844adececb2c6461b40afbb938;
+
+        bytes32 codeHash;
+        assembly { codeHash := extcodehash(eligible) }
+
+        return (codeHash != SMARTWALLET_ETH_ACCOUNT_BYTE_CODE_HASH && codeHash != 0x0);
     }
 
     function lastTimeRewardApplicable() public view returns (uint256) {
@@ -89,7 +113,7 @@ contract iETHRewards is LPTokenWrapper, IRewardDistributionRecipient {
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public updateReward(msg.sender) {
+    function stake(uint256 amount) public updateReward(msg.sender) onlyEligible() {
         require(amount > 0, "Cannot stake 0");
         super.stake(amount);
         emit Staked(msg.sender, amount);
@@ -110,7 +134,7 @@ contract iETHRewards is LPTokenWrapper, IRewardDistributionRecipient {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            snx.safeTransfer(msg.sender, reward);
+            plr.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }
