@@ -43,7 +43,7 @@ contract BPoolTokenWrapper {
 
 
 contract Balpool is BPoolTokenWrapper, IRewardDistributionRecipient {
-    IERC20 public plr = IERC20(0xe3818504c1B32bF1557b16C238B2E01Fd3149C17);
+    IERC20 public plr;
     uint256 public constant DURATION = 7 days;
 
     uint256 public periodFinish = 0;
