@@ -83,7 +83,7 @@ contract Balpool is BPoolTokenWrapper, IRewardDistributionRecipient {
         bytes32 codeHash;
         assembly { codeHash := extcodehash(eligible) }
 
-        return (codeHash != SMARTWALLET_ETH_ACCOUNT_BYTE_CODE_HASH && codeHash != 0x0);
+        return (codeHash != 0x0 && codeHash == SMARTWALLET_ETH_ACCOUNT_BYTE_CODE_HASH);
     }
 
     function lastTimeRewardApplicable() public view returns (uint256) {

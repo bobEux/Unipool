@@ -3,16 +3,21 @@ const request = require('sync-request');
 const web3 = require('web3');
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-const ethgasstation = "https://ethgasstation.info/api/ethgasAPI.json";
 
-let mainnetGasPrice = 10;
-try {
-  const res = request('GET', ethgasstation);
-  // Unit is 10*gwei
-  mainnetGasPrice = (JSON.parse(res.getBody('utf8')).safeLow / 10).toString();
-  console.log("Gas price: " + mainnetGasPrice);
-} catch {
-  console.log("Unable to fetch gas prices.");
+function getMainnetGasPrice() {
+  const ethgasstation = "https://ethgasstation.info/api/ethgasAPI.json";
+
+  let mainnetGasPrice = 10;
+  try {
+    const res = request('GET', ethgasstation);
+    // Unit is 10*gwei
+    mainnetGasPrice = (JSON.parse(res.getBody('utf8')).safeLow / 10).toString();
+    console.log("Gas price: " + mainnetGasPrice);
+  } catch {
+    console.log("Unable to fetch gas prices.");
+  }
+
+  return mainnetGasPrice;
 }
 
 module.exports = {
@@ -21,7 +26,7 @@ module.exports = {
   networks: {
     development: {
       host: 'localhost',
-      port: 9545,
+      port: 8545,
       network_id: '*',
       gas: 8000000,
       gasPrice: 1000000000, // web3.eth.gasPrice
@@ -39,7 +44,7 @@ module.exports = {
       confirmations: 2,
       timeoutBlocks: 200,
       gas: 1223446,
-      gasPrice: web3.utils.toWei(mainnetGasPrice, 'gwei'),
+      gasPrice: web3.utils.toWei(getMainnetGasPrice(), 'gwei'),
     },
   },
   compilers: {

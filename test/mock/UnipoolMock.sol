@@ -7,6 +7,6 @@ contract UnipoolMock is Unipool {
 
     constructor(IERC20 uniToken, IERC20 snxToken) public {
         uni = uniToken;
-        snx = snxToken;
+        plr = snxToken;
     }
 }
