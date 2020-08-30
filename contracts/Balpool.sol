@@ -73,6 +73,7 @@ contract Balpool is BPoolTokenWrapper, IRewardDistributionRecipient {
         _;
     }
 
+    /*
     modifier onlyEligible() {
         require(isEligible(msg.sender), "Must be called by a Pillar Wallet.");
         _;
@@ -86,6 +87,7 @@ contract Balpool is BPoolTokenWrapper, IRewardDistributionRecipient {
 
         return (codeHash != 0x0 && codeHash == SMARTWALLET_ETH_ACCOUNT_BYTE_CODE_HASH);
     }
+    */
 
     function lastTimeRewardApplicable() public view returns (uint256) {
         return Math.min(block.timestamp, periodFinish);
@@ -114,7 +116,7 @@ contract Balpool is BPoolTokenWrapper, IRewardDistributionRecipient {
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public updateReward(msg.sender) onlyEligible() {
+    function stake(uint256 amount) public updateReward(msg.sender) {
         require(amount > 0, "Cannot stake 0");
         super.stake(amount);
         emit Staked(msg.sender, amount);

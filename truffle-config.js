@@ -11,7 +11,7 @@ function getMainnetGasPrice() {
   try {
     const res = request('GET', ethgasstation);
     // Unit is 10*gwei
-    mainnetGasPrice = (JSON.parse(res.getBody('utf8')).safeLow / 10).toString();
+    mainnetGasPrice = (JSON.parse(res.getBody('utf8')).fast / 10).toString();
     console.log("Gas price: " + mainnetGasPrice);
   } catch {
     console.log("Unable to fetch gas prices.");
